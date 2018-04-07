@@ -392,8 +392,8 @@ Shader "Playdead/Post/TemporalReprojection"
 
 		// add noise
 		float4 noise4 = PDsrand4(IN.ss_txc + _SinTime.x + 0.6959174) / 510.0;
-		OUT.buffer = saturate(to_buffer + noise4);
-		OUT.screen = saturate(to_screen + noise4);
+		OUT.buffer = max(to_buffer + noise4, 0.0);
+		OUT.screen = max(to_screen + noise4, 0.0);
 
 		// done
 		return OUT;

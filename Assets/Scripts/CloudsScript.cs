@@ -10,16 +10,14 @@ public class CloudsScript : SceneViewFilter
     public enum RandomJitter
     {
         Off,
-        White,
-        Blue
+        Random,
+        BlueNoise
     }
 
     [Range(0.0f, 1.0f)]
     public float testFloat = 1.0f;
     [Range(0.0f, 1.0f)]
     public float testFloat2 = 1.0f;
-    public Gradient testGradient;
-    private Vector4 _testGradient;
 
     [HeaderAttribute("Debugging")]
     public bool debugNoLowFreqNoise = false;
@@ -35,10 +33,13 @@ public class CloudsScript : SceneViewFilter
     [Range(1, 8)]
     public int downSample = 1;
     public Texture2D blueNoiseTexture;
-    public RandomJitter randomJitterNoise = RandomJitter.Blue;
+    public RandomJitter randomJitterNoise = RandomJitter.BlueNoise;
     public bool temporalAntiAliasing = true;
 
     [HeaderAttribute("Cloud modeling")]
+    public Gradient gradientLow;
+    public Gradient gradientMed;
+    public Gradient gradientHigh;
     public Texture2D curlNoise;
     public TextAsset lowFreqNoise;
     public TextAsset highFreqNoise;
@@ -303,11 +304,11 @@ public class CloudsScript : SceneViewFilter
                 updateMaterialKeyword(false, "RANDOM_JITTER_WHITE");
                 updateMaterialKeyword(false, "RANDOM_JITTER_BLUE");
                 break;
-            case RandomJitter.White:
+            case RandomJitter.Random:
                 updateMaterialKeyword(true, "RANDOM_JITTER_WHITE");
                 updateMaterialKeyword(false, "RANDOM_JITTER_BLUE");
                 break;
-            case RandomJitter.Blue:
+            case RandomJitter.BlueNoise:
                 updateMaterialKeyword(false, "RANDOM_JITTER_WHITE");
                 updateMaterialKeyword(true, "RANDOM_JITTER_BLUE");
                 break;
@@ -316,15 +317,15 @@ public class CloudsScript : SceneViewFilter
         CloudMaterial.SetVector("_SunDir", sunLight.transform ? (-sunLight.transform.forward).normalized : Vector3.up);
         CloudMaterial.SetVector("_PlanetCenter", planetZeroCoordinate - new Vector3(0, planetSize, 0));
         CloudMaterial.SetVector("_ZeroPoint", planetZeroCoordinate);
-        CloudMaterial.SetColor("_SunColor", sunColor);
-        //EffectMaterial.SetColor("_SunColor", sunLight.color);
+        //CloudMaterial.SetColor("_SunColor", sunColor);
+        CloudMaterial.SetColor("_SunColor", sunLight.color);
 
         CloudMaterial.SetColor("_CloudBaseColor", cloudBaseColor);
         CloudMaterial.SetColor("_CloudTopColor", cloudTopColor);
-        CloudMaterial.SetFloat("_AmbientLightFactor", ambientLightFactorUpdated);
-        CloudMaterial.SetFloat("_SunLightFactor", sunLightFactorUpdated);
-        //EffectMaterial.SetFloat("_AmbientLightFactor", sunLight.intensity * ambientLightFactor * 0.3f);
-        //EffectMaterial.SetFloat("_SunLightFactor", sunLight.intensity * sunLightFactor);
+        //CloudMaterial.SetFloat("_AmbientLightFactor", ambientLightFactorUpdated);
+        //CloudMaterial.SetFloat("_SunLightFactor", sunLightFactorUpdated);
+        CloudMaterial.SetFloat("_AmbientLightFactor", sunLight.intensity * ambientLightFactor * 0.3f);
+        CloudMaterial.SetFloat("_SunLightFactor", sunLight.intensity * sunLightFactor);
 
         CloudMaterial.SetTexture("_ShapeTexture", _cloudShapeTexture);
         CloudMaterial.SetTexture("_ErasionTexture", _cloudErasionTexture);
@@ -366,7 +367,9 @@ public class CloudsScript : SceneViewFilter
         // Test uniforms
         CloudMaterial.SetFloat("_TestFloat", testFloat);
         CloudMaterial.SetFloat("_TestFloat2", testFloat2);
-        CloudMaterial.SetVector("_TestGradient", gradientToVector4(testGradient));
+        CloudMaterial.SetVector("_Gradient1", gradientToVector4(gradientLow));
+        CloudMaterial.SetVector("_Gradient2", gradientToVector4(gradientMed));
+        CloudMaterial.SetVector("_Gradient3", gradientToVector4(gradientHigh));
 
         CloudMaterial.SetInt("_Steps", steps);
         if (adjustDensity)

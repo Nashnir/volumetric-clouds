@@ -167,7 +167,7 @@ public class TemporalReprojection : EffectBase
         }
         else
         {
-            RenderTexture internalDestination = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default, source.antiAliasing);
+            RenderTexture internalDestination = RenderTexture.GetTemporary(source.width, source.height, 0, source.format, RenderTextureReadWrite.Default, source.antiAliasing);
             {
                 Resolve(source, internalDestination);
                 Graphics.Blit(internalDestination, destination);

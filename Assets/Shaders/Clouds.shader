@@ -87,7 +87,6 @@
 			// Temporary test uniforms
 			uniform float _TestFloat;
 			uniform float _TestFloat2;
-			uniform float4 _TestGradient;
 
 			uniform float _Scale;
 			uniform float _ErasionScale;
@@ -107,6 +106,10 @@
 
 			uniform float2 _LowFreqMinMax;
 			uniform float _HighFreqModifier;
+
+			uniform float4 _Gradient1;
+			uniform float4 _Gradient2;
+			uniform float4 _Gradient3;
 
 			uniform int _Steps;
 
@@ -166,16 +169,16 @@
 				return saturate((distance(inPosition,  _PlanetCenter) - (_SphereSize + _CloudHeightMinMax.x)) / _Thickness);
 			}
 
-			float getDensityHeightGradientForPoint(float3 p, float3 weather_data)
-			{
-				//return densityHeightGradient(getHeightFractionForPoint(p), weather_data.g);
-				float height = getHeightFractionForPoint(p);
-				return (remap(height, _TestGradient.x, _TestGradient.y, 0.0, 1.0) * remap(height, _TestGradient.z, _TestGradient.w, 1.0, 0.0));
-			}
-
 			float improvedGradient(float4 gradient, float height)
 			{
 				return smoothstep(gradient.x, gradient.y, height) - smoothstep(gradient.z, gradient.w, height);
+			}
+
+			float getDensityHeightGradient(float height, float3 weather_data)
+			{
+				float type = weather_data.g;
+				float4 gradient = lerp(lerp(_Gradient1, _Gradient2, type * 2.0), _Gradient3, saturate((type - 0.5) * 2.0));
+				return improvedGradient(gradient, height);//improvedGradient(_Gradient3, height);//
 			}
 
 			float3 sampleWeather(float3 p) {
@@ -198,8 +201,7 @@
 				float base_cloud = low_frequency_noises.r;//remap(low_frequency_noises.r, -(1.0 - low_freq_FBM), 1.0, 0.0, 1.0);//
 				base_cloud = remap(base_cloud * pow(1.2 - height_fraction, 0.1), _LowFreqMinMax.x, _LowFreqMinMax.y, 0.0, 1.0);
 #endif
-				//float density_height_gradient = getDensityHeightGradientForPoint(p, weather_data);
-				base_cloud *= improvedGradient(_TestGradient, height_fraction);//density_height_gradient;//
+				base_cloud *= getDensityHeightGradient(height_fraction, weather_data);//improvedGradient(_TestGradient, height_fraction);//
 				
 				float cloud_coverage = saturate(weather_data.r -_Coverage);
 
@@ -253,7 +255,7 @@
 			}
 
 			float calculateLightEnergy(float density, float cosAngle, float powderDensity, float weather) {
-				return 2.0 * beerLaw(density, 1.0 + weather) * powderEffect(powderDensity) * 
+				return 2.0 * beerLaw(density, 1.0 + weather * 0.25) * powderEffect(powderDensity) * 
 					max(HenyeyGreensteinPhase(cosAngle, _HenyeyGreensteinGForward), HenyeyGreensteinPhase(cosAngle, _HenyeyGreensteinGBackward));
 			}
 

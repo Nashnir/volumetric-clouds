@@ -159,6 +159,7 @@ public class CloudTemporalAntiAliasing : EffectBase {
 
     public void TemporalAntiAliasing(RenderTexture source, RenderTexture destination)
     {
+        //Debug.Log(source.format);
         if (destination != null && source.antiAliasing == destination.antiAliasing)// resolve without additional blit when not end of chain
         {
             Resolve(source, destination);
